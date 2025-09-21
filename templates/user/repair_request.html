@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}แจ้งซ่อม - ระบบแจ้งซ่อมห้องพัก{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-plus me-2"></i>แจ้งซ่อม
+    </h2>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('user_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>กลับ
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card dashboard-card fade-in-up">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h5 class="mb-0">
+                    <i class="fas fa-tools me-2"></i>แบบฟอร์มแจ้งซ่อม
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="room_number" class="form-label">
+                                <i class="fas fa-door-open me-1"></i>หมายเลขห้อง *
+                            </label>
+                            <input type="text" class="form-control" id="room_number" name="room_number" 
+                                   value="{{ user.room_number or '' }}" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="repair_type" class="form-label">
+                                <i class="fas fa-tools me-1"></i>ประเภทการซ่อม *
+                            </label>
+                            <select class="form-select" id="repair_type" name="repair_type" required>
+                                <option value="">เลือกประเภทการซ่อม</option>
+                                <option value="plumbing">ประปา (ก๊อกน้ำ, ท่อน้ำ, ห้องน้ำ)</option>
+                                <option value="electrical">ไฟฟ้า (ปลั๊กไฟ, สวิตช์, หลอดไฟ)</option>
+                                <option value="furniture">เฟอร์นิเจอร์ (ตู้, เตียง, โต๊ะ)</option>
+                                <option value="air_conditioning">เครื่องปรับอากาศ</option>
+                                <option value="internet">อินเทอร์เน็ต/WiFi</option>
+                                <option value="other">อื่นๆ</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="priority" class="form-label">
+                            <i class="fas fa-exclamation-triangle me-1"></i>ระดับความสำคัญ
+                        </label>
+                        <select class="form-select" id="priority" name="priority">
+                            <option value="low">ต่ำ - ไม่เร่งด่วน</option>
+                            <option value="medium" selected>ปานกลาง - ปกติ</option>
+                            <option value="high">สูง - เร่งด่วน</option>
+                            <option value="urgent">ด่วน - ต้องการความช่วยเหลือทันที</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">
+                            <i class="fas fa-comment me-1"></i>รายละเอียดปัญหา *
+                        </label>
+                        <textarea class="form-control" id="description" name="description" rows="4" 
+                                  placeholder="กรุณาอธิบายปัญหาที่พบอย่างละเอียด..." required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="image" class="form-label">
+                            <i class="fas fa-camera me-1"></i>รูปภาพประกอบ (ถ้ามี)
+                        </label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                        <small class="form-text text-muted">รองรับไฟล์ JPG, PNG ขนาดไม่เกิน 5MB</small>
+                        
+                        <div id="imagePreview" class="mt-3" style="display: none;">
+                            <img id="previewImg" class="img-fluid rounded" style="max-height: 200px;">
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn dashboard-btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>ส่งการแจ้งซ่อม
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Information Card -->
+        <div class="card dashboard-card mt-3 fade-in-up" style="animation-delay: 0.2s;">
+            <div class="card-header" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>ข้อมูลสำคัญ
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li><i class="fas fa-check text-success me-2"></i>กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง</li>
+                    <li><i class="fas fa-check text-success me-2"></i>อัปโหลดรูปภาพจะช่วยให้ช่างซ่อมเข้าใจปัญหาได้ดีขึ้น</li>
+                    <li><i class="fas fa-check text-success me-2"></i>ระบบจะแจ้งเตือนเมื่อมีการอัปเดตสถานะ</li>
+                    <li><i class="fas fa-check text-success me-2"></i>สามารถติดตามสถานะได้ในแดชบอร์ด</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Repair Types Guide -->
+        <div class="card dashboard-card mt-3 fade-in-up" style="animation-delay: 0.3s;">
+            <div class="card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-question-circle me-2"></i>ประเภทการซ่อม
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-tint text-primary me-2"></i>ประปา</h6>
+                        <p class="small text-muted">ก๊อกน้ำรั่ว, ท่อน้ำแตก, ห้องน้ำอุดตัน, เครื่องทำน้ำอุ่น</p>
+                        
+                        <h6><i class="fas fa-bolt text-warning me-2"></i>ไฟฟ้า</h6>
+                        <p class="small text-muted">ปลั๊กไฟไม่ทำงาน, สวิตช์เสีย, หลอดไฟไม่ติด</p>
+                        
+                        <h6><i class="fas fa-couch text-success me-2"></i>เฟอร์นิเจอร์</h6>
+                        <p class="small text-muted">ตู้เสีย, เตียงหัก, โต๊ะโยก, ประตูติด</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-snowflake text-info me-2"></i>เครื่องปรับอากาศ</h6>
+                        <p class="small text-muted">ไม่เย็น, เสียงดัง, น้ำหยด, กลิ่นเหม็น</p>
+                        
+                        <h6><i class="fas fa-wifi text-secondary me-2"></i>อินเทอร์เน็ต</h6>
+                        <p class="small text-muted">WiFi ไม่ทำงาน, สัญญาณอ่อน, เชื่อมต่อไม่ได้</p>
+                        
+                        <h6><i class="fas fa-tools text-dark me-2"></i>อื่นๆ</h6>
+                        <p class="small text-muted">ปัญหาอื่นๆ ที่ไม่เข้าข่ายข้างต้น</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Image preview
+document.getElementById('image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        document.getElementById('imagePreview').style.display = 'none';
+    }
+});
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const roomNumber = document.getElementById('room_number').value.trim();
+    const repairType = document.getElementById('repair_type').value;
+    const description = document.getElementById('description').value.trim();
+    
+    if (!roomNumber || !repairType || !description) {
+        e.preventDefault();
+        alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+        return false;
+    }
+    
+    if (description.length < 10) {
+        e.preventDefault();
+        alert('กรุณาอธิบายปัญหาอย่างละเอียด (อย่างน้อย 10 ตัวอักษร)');
+        return false;
+    }
+});
+</script>
+{% endblock %}

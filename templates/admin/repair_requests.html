@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+
+{% block title %}รายการแจ้งซ่อม - ระบบแจ้งซ่อมห้องพัก{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-list me-2"></i>รายการแจ้งซ่อม
+    </h2>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>กลับ
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label for="status" class="form-label">สถานะ</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">ทั้งหมด</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>รอดำเนินการ</option>
+                    <option value="assigned" {% if status_filter == 'assigned' %}selected{% endif %}>มอบหมายแล้ว</option>
+                    <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>กำลังดำเนินการ</option>
+                    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>เสร็จสิ้น</option>
+                    <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>ยกเลิก</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label for="type" class="form-label">ประเภท</label>
+                <select class="form-select" id="type" name="type">
+                    <option value="">ทั้งหมด</option>
+                    <option value="plumbing" {% if type_filter == 'plumbing' %}selected{% endif %}>ประปา</option>
+                    <option value="electrical" {% if type_filter == 'electrical' %}selected{% endif %}>ไฟฟ้า</option>
+                    <option value="furniture" {% if type_filter == 'furniture' %}selected{% endif %}>เฟอร์นิเจอร์</option>
+                    <option value="air_conditioning" {% if type_filter == 'air_conditioning' %}selected{% endif %}>เครื่องปรับอากาศ</option>
+                    <option value="internet" {% if type_filter == 'internet' %}selected{% endif %}>อินเทอร์เน็ต</option>
+                    <option value="other" {% if type_filter == 'other' %}selected{% endif %}>อื่นๆ</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label for="room" class="form-label">หมายเลขห้อง</label>
+                <input type="text" class="form-control" id="room" name="room" placeholder="เช่น 101">
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i>ค้นหา
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Repair Requests Table -->
+<div class="card">
+    <div class="card-body">
+        {% if repair_requests.items %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>ผู้แจ้ง</th>
+                            <th>ห้อง</th>
+                            <th>ประเภท</th>
+                            <th>ความสำคัญ</th>
+                            <th>สถานะ</th>
+                            <th>ช่างซ่อม</th>
+                            <th>วันที่แจ้ง</th>
+                            <th>การดำเนินการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in repair_requests.items %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-secondary">#{{ request.id }}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if request.requester.profile_image %}
+                                        <img src="{{ url_for('static', filename='uploads/' + request.requester.profile_image) }}" 
+                                             class="rounded-circle me-2" width="35" height="35">
+                                    {% else %}
+                                        <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                                             style="width: 35px; height: 35px;">
+                                            <i class="fas fa-user text-white"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-bold">{{ request.requester.full_name }}</div>
+                                        <small class="text-muted">{{ request.requester.email }}</small>
+                                        {% if request.requester.phone %}
+                                            <br><small class="text-muted">
+                                                <i class="fas fa-phone me-1"></i>{{ request.requester.phone }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ request.room_number }}</span>
+                            </td>
+                            <td>
+                                {% if request.repair_type == 'plumbing' %}
+                                    <span class="badge bg-primary">
+                                        <i class="fas fa-tint me-1"></i>ประปา
+                                    </span>
+                                {% elif request.repair_type == 'electrical' %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-bolt me-1"></i>ไฟฟ้า
+                                    </span>
+                                {% elif request.repair_type == 'furniture' %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-couch me-1"></i>เฟอร์นิเจอร์
+                                    </span>
+                                {% elif request.repair_type == 'air_conditioning' %}
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-snowflake me-1"></i>เครื่องปรับอากาศ
+                                    </span>
+                                {% elif request.repair_type == 'internet' %}
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-wifi me-1"></i>อินเทอร์เน็ต
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-dark">
+                                        <i class="fas fa-tools me-1"></i>อื่นๆ
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if request.priority == 'urgent' %}
+                                    <span class="badge bg-danger">ด่วน</span>
+                                {% elif request.priority == 'high' %}
+                                    <span class="badge bg-warning">สูง</span>
+                                {% elif request.priority == 'medium' %}
+                                    <span class="badge bg-info">ปานกลาง</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">ต่ำ</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if request.status == 'pending' %}
+                                    <span class="badge bg-warning">รอดำเนินการ</span>
+                                {% elif request.status == 'assigned' %}
+                                    <span class="badge bg-info">มอบหมายแล้ว</span>
+                                {% elif request.status == 'in_progress' %}
+                                    <span class="badge bg-primary">กำลังดำเนินการ</span>
+                                {% elif request.status == 'completed' %}
+                                    <span class="badge bg-success">เสร็จสิ้น</span>
+                                {% elif request.status == 'cancelled' %}
+                                    <span class="badge bg-danger">ยกเลิก</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if request.assigned_technician %}
+                                    <div class="d-flex align-items-center">
+                                        {% if request.assigned_technician.user.profile_image %}
+                                            <img src="{{ url_for('static', filename='uploads/' + request.assigned_technician.user.profile_image) }}" 
+                                                 class="rounded-circle me-2" width="25" height="25">
+                                        {% else %}
+                                            <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                                                 style="width: 25px; height: 25px;">
+                                                <i class="fas fa-wrench text-white" style="font-size: 10px;"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-bold">{{ request.assigned_technician.user.full_name }}</div>
+                                            <small class="text-muted">{{ request.assigned_technician.employee_id }}</small>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">ยังไม่ได้มอบหมาย</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>{{ request.created_at.strftime('%d/%m/%Y') }}</div>
+                                <small class="text-muted">{{ request.created_at.strftime('%H:%M') }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            data-bs-toggle="modal" data-bs-target="#viewModal{{ request.id }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    
+                                    {% if request.status == 'pending' %}
+                                        <button type="button" class="btn btn-sm btn-outline-success" 
+                                                data-bs-toggle="modal" data-bs-target="#assignModal{{ request.id }}">
+                                            <i class="fas fa-user-plus"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if repair_requests.pages > 1 %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if repair_requests.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin_repair_requests', page=repair_requests.prev_num, status=status_filter, type=type_filter) }}">ก่อนหน้า</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for page_num in repair_requests.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num != repair_requests.page %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('admin_repair_requests', page=page_num, status=status_filter, type=type_filter) }}">{{ page_num }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                {% endif %}
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if repair_requests.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin_repair_requests', page=repair_requests.next_num, status=status_filter, type=type_filter) }}">ถัดไป</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">ไม่พบรายการแจ้งซ่อม</h5>
+                <p class="text-muted">ลองเปลี่ยนเงื่อนไขการค้นหา</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- View Modal for each request -->
+{% for request in repair_requests.items %}
+<div class="modal fade" id="viewModal{{ request.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">รายละเอียดการแจ้งซ่อม #{{ request.id }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>ข้อมูลผู้แจ้ง</h6>
+                        <p><strong>ชื่อ:</strong> {{ request.requester.full_name }}</p>
+                        <p><strong>อีเมล:</strong> {{ request.requester.email }}</p>
+                        {% if request.requester.phone %}
+                            <p><strong>เบอร์โทร:</strong> {{ request.requester.phone }}</p>
+                        {% endif %}
+                        {% if request.requester.line_id %}
+                            <p><strong>ไลน์ ID:</strong> {{ request.requester.line_id }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6>ข้อมูลการซ่อม</h6>
+                        <p><strong>ห้อง:</strong> {{ request.room_number }}</p>
+                        <p><strong>ประเภท:</strong> {{ request.repair_type }}</p>
+                        <p><strong>ความสำคัญ:</strong> {{ request.priority }}</p>
+                        <p><strong>สถานะ:</strong> {{ request.status }}</p>
+                        <p><strong>วันที่แจ้ง:</strong> {{ request.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                    </div>
+                </div>
+                <hr>
+                <h6>รายละเอียดปัญหา</h6>
+                <p>{{ request.description }}</p>
+                
+                {% if request.image_path %}
+                    <h6>รูปภาพ</h6>
+                    <img src="{{ url_for('static', filename='uploads/' + request.image_path) }}" 
+                         class="img-fluid rounded" style="max-height: 300px;">
+                {% endif %}
+                
+                {% if request.admin_notes %}
+                    <hr>
+                    <h6>หมายเหตุจากแอดมิน</h6>
+                    <p>{{ request.admin_notes }}</p>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Modal for each request -->
+{% if request.status == 'pending' %}
+<div class="modal fade" id="assignModal{{ request.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">มอบหมายงาน #{{ request.id }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin_assign_repair', repair_id=request.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="technician_id" class="form-label">เลือกช่างซ่อม</label>
+                        <select class="form-select" id="technician_id" name="technician_id" required>
+                            <option value="">เลือกช่างซ่อม</option>
+                            <!-- This would be populated with available technicians -->
+                            <option value="1">ช่างซ่อม 1 (TECH001)</option>
+                            <option value="2">ช่างซ่อม 2 (TECH002)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn btn-success">มอบหมายงาน</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}

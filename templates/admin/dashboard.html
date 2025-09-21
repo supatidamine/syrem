@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}แดชบอร์ดแอดมิน - ระบบแจ้งซ่อมห้องพัก{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Welcome Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card welcome-card text-white dashboard-card fade-in-up">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-2 text-center">
+                        {% if session.user_profile_image %}
+                            <img src="{{ url_for('static', filename='uploads/' + session.user_profile_image) }}" 
+                                 alt="Profile" class="rounded-circle profile-img" width="100" height="100">
+                        {% else %}
+                            <div class="bg-white rounded-circle d-flex align-items-center justify-content-center profile-img" 
+                                 style="width: 100px; height: 100px;">
+                                <i class="fas fa-user-shield text-danger" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-8">
+                        <h2 class="mb-2 dashboard-title">สวัสดี, {{ session.user_name }}! 👨‍💼</h2>
+                        <p class="mb-1 fs-5">
+                            🛡️ ผู้ดูแลระบบ | จัดการระบบแจ้งซ่อมห้องพัก
+                        </p>
+                        <small class="opacity-75">
+                            <i class="fas fa-calendar me-1"></i>
+                            <span id="current-date"></span>
+                        </small>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <i class="fas fa-tachometer-alt fa-5x opacity-50 pulse-animation"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-gradient-primary text-white h-100 fade-in-up" style="animation-delay: 0.1s;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1 fw-bold">{{ total_requests }}</h3>
+                        <p class="mb-0 fs-6">รายการทั้งหมด</p>
+                        <small class="opacity-75">📋 รายการแจ้งซ่อม</small>
+                    </div>
+                    <div class="text-end">
+                        <i class="fas fa-list stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-gradient-warning text-white h-100 fade-in-up" style="animation-delay: 0.2s;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1 fw-bold">{{ pending_requests }}</h3>
+                        <p class="mb-0 fs-6">รอดำเนินการ</p>
+                        <small class="opacity-75">⏳ รอการตรวจสอบ</small>
+                    </div>
+                    <div class="text-end">
+                        <i class="fas fa-clock stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-gradient-info text-white h-100 fade-in-up" style="animation-delay: 0.3s;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1 fw-bold">{{ in_progress_requests }}</h3>
+                        <p class="mb-0 fs-6">กำลังดำเนินการ</p>
+                        <small class="opacity-75">🔧 กำลังซ่อม</small>
+                    </div>
+                    <div class="text-end">
+                        <i class="fas fa-tools stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-gradient-success text-white h-100 fade-in-up" style="animation-delay: 0.4s;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1 fw-bold">{{ completed_requests }}</h3>
+                        <p class="mb-0 fs-6">เสร็จสิ้น</p>
+                        <small class="opacity-75">✅ งานเสร็จแล้ว</small>
+                    </div>
+                    <div class="text-end">
+                        <i class="fas fa-check-circle stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>สถิติการแจ้งซ่อมรายเดือน
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>ประเภทการซ่อม
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="repairTypeChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Requests -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>รายการแจ้งซ่อมล่าสุด
+                </h5>
+                <a href="{{ url_for('admin_repair_requests') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-eye me-1"></i>ดูทั้งหมด
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_requests %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>ผู้แจ้ง</th>
+                                    <th>ห้อง</th>
+                                    <th>ประเภท</th>
+                                    <th>สถานะ</th>
+                                    <th>วันที่แจ้ง</th>
+                                    <th>การดำเนินการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in recent_requests %}
+                                <tr>
+                                    <td>#{{ request.id }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if request.requester.profile_image %}
+                                                <img src="{{ url_for('static', filename='uploads/' + request.requester.profile_image) }}" 
+                                                     class="rounded-circle me-2" width="30" height="30">
+                                            {% else %}
+                                                <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                                                     style="width: 30px; height: 30px;">
+                                                    <i class="fas fa-user text-white"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <div class="fw-bold">{{ request.requester.full_name }}</div>
+                                                <small class="text-muted">{{ request.requester.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ request.room_number }}</td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {% if request.repair_type == 'plumbing' %}
+                                                <i class="fas fa-tint me-1"></i>ประปา
+                                            {% elif request.repair_type == 'electrical' %}
+                                                <i class="fas fa-bolt me-1"></i>ไฟฟ้า
+                                            {% elif request.repair_type == 'furniture' %}
+                                                <i class="fas fa-couch me-1"></i>เฟอร์นิเจอร์
+                                            {% elif request.repair_type == 'air_conditioning' %}
+                                                <i class="fas fa-snowflake me-1"></i>เครื่องปรับอากาศ
+                                            {% elif request.repair_type == 'internet' %}
+                                                <i class="fas fa-wifi me-1"></i>อินเทอร์เน็ต
+                                            {% else %}
+                                                <i class="fas fa-tools me-1"></i>อื่นๆ
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if request.status == 'pending' %}
+                                            <span class="badge bg-warning">รอดำเนินการ</span>
+                                        {% elif request.status == 'assigned' %}
+                                            <span class="badge bg-info">มอบหมายแล้ว</span>
+                                        {% elif request.status == 'in_progress' %}
+                                            <span class="badge bg-primary">กำลังดำเนินการ</span>
+                                        {% elif request.status == 'completed' %}
+                                            <span class="badge bg-success">เสร็จสิ้น</span>
+                                        {% elif request.status == 'cancelled' %}
+                                            <span class="badge bg-danger">ยกเลิก</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ request.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('admin_repair_requests') }}?id={{ request.id }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">ยังไม่มีรายการแจ้งซ่อม</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Monthly Chart
+const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+fetch('/api/repair-stats')
+    .then(response => response.json())
+    .then(data => {
+        new Chart(monthlyCtx, {
+            type: 'bar',
+            data: {
+                labels: data.monthly.map(item => item.month),
+                datasets: [{
+                    label: 'จำนวนการแจ้งซ่อม',
+                    data: data.monthly.map(item => item.count),
+                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+
+// Repair Type Chart
+const repairTypeCtx = document.getElementById('repairTypeChart').getContext('2d');
+const repairTypes = {{ repair_types | tojson }};
+const typeLabels = {
+    'plumbing': 'ประปา',
+    'electrical': 'ไฟฟ้า',
+    'furniture': 'เฟอร์นิเจอร์',
+    'air_conditioning': 'เครื่องปรับอากาศ',
+    'internet': 'อินเทอร์เน็ต',
+    'other': 'อื่นๆ'
+};
+
+new Chart(repairTypeCtx, {
+    type: 'doughnut',
+    data: {
+        labels: repairTypes.map(item => typeLabels[item.type] || item.type),
+        datasets: [{
+            data: repairTypes.map(item => item.count),
+            backgroundColor: [
+                '#FF6384',
+                '#36A2EB',
+                '#FFCE56',
+                '#4BC0C0',
+                '#9966FF',
+                '#FF9F40'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// แสดงวันที่ปัจจุบัน
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const dateString = today.toLocaleDateString('th-TH', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+    document.getElementById('current-date').textContent = dateString;
+});
+</script>
+{% endblock %}

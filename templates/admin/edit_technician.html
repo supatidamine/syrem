@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}แก้ไขข้อมูลช่างซ่อม - ระบบแจ้งซ่อมห้องพัก{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+.edit-form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-section {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.form-section h4 {
+    color: #667eea;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+    border-radius: 10px;
+    padding: 12px 30px;
+    font-weight: 600;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="edit-form-container">
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i class="fas fa-user-edit me-2"></i>แก้ไขข้อมูลช่างซ่อม
+                    </h2>
+                    <a href="{{ url_for('admin_technicians') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>กลับ
+                    </a>
+                </div>
+
+                <!-- Edit Form -->
+                <div class="form-section">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="full_name" class="form-label">
+                                        <i class="fas fa-user me-1"></i>ชื่อ-นามสกุล
+                                    </label>
+                                    <input type="text" class="form-control" id="full_name" name="full_name" 
+                                           value="{{ technician.user.full_name }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="email" class="form-label">
+                                        <i class="fas fa-envelope me-1"></i>อีเมล
+                                    </label>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           value="{{ technician.user.email }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="phone" class="form-label">
+                                        <i class="fas fa-phone me-1"></i>เบอร์โทรศัพท์
+                                    </label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" 
+                                           value="{{ technician.user.phone or '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="line_id" class="form-label">
+                                        <i class="fab fa-line me-1"></i>ไลน์ ID
+                                    </label>
+                                    <input type="text" class="form-control" id="line_id" name="line_id" 
+                                           value="{{ technician.user.line_id or '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="employee_id" class="form-label">
+                                        <i class="fas fa-id-card me-1"></i>รหัสพนักงาน
+                                    </label>
+                                    <input type="text" class="form-control" id="employee_id" name="employee_id" 
+                                           value="{{ technician.employee_id }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="specialization" class="form-label">
+                                        <i class="fas fa-tools me-1"></i>ความเชี่ยวชาญ
+                                    </label>
+                                    <input type="text" class="form-control" id="specialization" name="specialization" 
+                                           value="{{ technician.specialization or '' }}" 
+                                           placeholder="เช่น ประปา, ไฟฟ้า, เครื่องปรับอากาศ">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="status" class="form-label">
+                                <i class="fas fa-toggle-on me-1"></i>สถานะ
+                            </label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="active" {% if technician.status == 'active' %}selected{% endif %}>
+                                    <i class="fas fa-check-circle"></i> ใช้งาน
+                                </option>
+                                <option value="inactive" {% if technician.status == 'inactive' %}selected{% endif %}>
+                                    <i class="fas fa-times-circle"></i> ไม่ใช้งาน
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{{ url_for('admin_technicians') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>ยกเลิก
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>บันทึกการแก้ไข
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Technician Info Card -->
+                <div class="form-section">
+                    <h4><i class="fas fa-info-circle me-2"></i>ข้อมูลเพิ่มเติม</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">ข้อมูลการทำงาน</h6>
+                                    <p class="card-text">
+                                        <strong>วันที่เข้าร่วม:</strong> {{ technician.created_at.strftime('%d/%m/%Y %H:%M') }}<br>
+                                        <strong>งานที่ได้รับ:</strong> {{ technician.assigned_repairs|length }} งาน<br>
+                                        <strong>งานเสร็จสิ้น:</strong> {{ technician.assigned_repairs|selectattr('status', 'equalto', 'completed')|list|length }} งาน
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">การแจ้งเตือน</h6>
+                                    <div class="alert alert-info mb-0">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        การแก้ไขข้อมูลจะส่งผลต่อการเข้าสู่ระบบและข้อมูลการติดต่อของช่างซ่อม
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const fullName = document.getElementById('full_name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const employeeId = document.getElementById('employee_id').value.trim();
+    
+    if (fullName.length < 2) {
+        e.preventDefault();
+        alert('กรุณากรอกชื่อ-นามสกุลอย่างน้อย 2 ตัวอักษร');
+        return;
+    }
+    
+    if (email.length < 5 || !email.includes('@')) {
+        e.preventDefault();
+        alert('กรุณากรอกอีเมลที่ถูกต้อง');
+        return;
+    }
+    
+    if (employeeId.length < 3) {
+        e.preventDefault();
+        alert('กรุณากรอกรหัสพนักงานอย่างน้อย 3 ตัวอักษร');
+        return;
+    }
+});
+
+// Auto-format phone number
+document.getElementById('phone').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 0) {
+        if (value.length <= 3) {
+            value = value;
+        } else if (value.length <= 6) {
+            value = value.slice(0, 3) + '-' + value.slice(3);
+        } else if (value.length <= 10) {
+            value = value.slice(0, 3) + '-' + value.slice(3, 6) + '-' + value.slice(6);
+        } else {
+            value = value.slice(0, 10);
+        }
+    }
+    e.target.value = value;
+});
+</script>
+{% endblock %}

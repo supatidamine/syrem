@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}แก้ไขการแจ้งซ่อม - ระบบแจ้งซ่อมห้องพัก{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+.edit-form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-section {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.form-section h4 {
+    color: #667eea;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+    border-radius: 10px;
+    padding: 12px 30px;
+    font-weight: 600;
+}
+
+.current-image {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.image-preview {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    display: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="edit-form-container">
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i class="fas fa-edit me-2"></i>แก้ไขการแจ้งซ่อม #{{ repair_request.id }}
+                    </h2>
+                    <a href="{{ url_for('user_dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>กลับ
+                    </a>
+                </div>
+
+                <!-- Edit Form -->
+                <div class="form-section">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="room_number" class="form-label">
+                                        <i class="fas fa-home me-1"></i>หมายเลขห้อง
+                                    </label>
+                                    <input type="text" class="form-control" id="room_number" name="room_number" 
+                                           value="{{ repair_request.room_number }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="repair_type" class="form-label">
+                                        <i class="fas fa-tools me-1"></i>ประเภทการซ่อม
+                                    </label>
+                                    <select class="form-select" id="repair_type" name="repair_type" required>
+                                        <option value="plumbing" {% if repair_request.repair_type == 'plumbing' %}selected{% endif %}>
+                                            <i class="fas fa-tint"></i> ประปา
+                                        </option>
+                                        <option value="electrical" {% if repair_request.repair_type == 'electrical' %}selected{% endif %}>
+                                            <i class="fas fa-bolt"></i> ไฟฟ้า
+                                        </option>
+                                        <option value="furniture" {% if repair_request.repair_type == 'furniture' %}selected{% endif %}>
+                                            <i class="fas fa-couch"></i> เฟอร์นิเจอร์
+                                        </option>
+                                        <option value="air_conditioning" {% if repair_request.repair_type == 'air_conditioning' %}selected{% endif %}>
+                                            <i class="fas fa-snowflake"></i> เครื่องปรับอากาศ
+                                        </option>
+                                        <option value="internet" {% if repair_request.repair_type == 'internet' %}selected{% endif %}>
+                                            <i class="fas fa-wifi"></i> อินเทอร์เน็ต
+                                        </option>
+                                        <option value="other" {% if repair_request.repair_type == 'other' %}selected{% endif %}>
+                                            <i class="fas fa-tools"></i> อื่นๆ
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="priority" class="form-label">
+                                <i class="fas fa-exclamation-triangle me-1"></i>ระดับความสำคัญ
+                            </label>
+                            <select class="form-select" id="priority" name="priority">
+                                <option value="low" {% if repair_request.priority == 'low' %}selected{% endif %}>ต่ำ</option>
+                                <option value="medium" {% if repair_request.priority == 'medium' %}selected{% endif %}>ปานกลาง</option>
+                                <option value="high" {% if repair_request.priority == 'high' %}selected{% endif %}>สูง</option>
+                                <option value="urgent" {% if repair_request.priority == 'urgent' %}selected{% endif %}>ด่วน</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description" class="form-label">
+                                <i class="fas fa-comment-alt me-1"></i>รายละเอียดปัญหา
+                            </label>
+                            <textarea class="form-control" id="description" name="description" rows="4" 
+                                      placeholder="กรุณาอธิบายปัญหาที่พบอย่างละเอียด" required>{{ repair_request.description }}</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="image" class="form-label">
+                                <i class="fas fa-image me-1"></i>รูปภาพปัญหา (ถ้ามี)
+                            </label>
+                            
+                            <!-- Current Image -->
+                            {% if repair_request.image_path %}
+                            <div class="mb-3">
+                                <p class="text-muted mb-2">รูปภาพปัจจุบัน:</p>
+                                <img src="{{ url_for('static', filename='uploads/' + repair_request.image_path) }}" 
+                                     class="current-image" alt="Current Image">
+                            </div>
+                            {% endif %}
+                            
+                            <input type="file" class="form-control" id="image" name="image" 
+                                   accept="image/*" onchange="previewImage(this)">
+                            
+                            <!-- Image Preview -->
+                            <div class="mt-3" id="imagePreview" style="display: none;">
+                                <p class="text-muted mb-2">รูปภาพใหม่:</p>
+                                <img id="previewImg" class="image-preview" alt="Preview">
+                            </div>
+                            
+                            <small class="form-text text-muted">
+                                รองรับไฟล์: JPG, PNG, GIF (ขนาดไม่เกิน 5MB)
+                            </small>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>ยกเลิก
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>บันทึกการแก้ไข
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function previewImage(input) {
+    const preview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        preview.style.display = 'none';
+    }
+}
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const description = document.getElementById('description').value.trim();
+    const roomNumber = document.getElementById('room_number').value.trim();
+    
+    if (description.length < 10) {
+        e.preventDefault();
+        alert('กรุณาอธิบายปัญหาอย่างน้อย 10 ตัวอักษร');
+        return;
+    }
+    
+    if (roomNumber.length < 1) {
+        e.preventDefault();
+        alert('กรุณากรอกหมายเลขห้อง');
+        return;
+    }
+});
+</script>
+{% endblock %}

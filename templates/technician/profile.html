@@ -1,0 +1,490 @@
+{% extends "base.html" %}
+
+{% block title %}โปรไฟล์ช่างซ่อม - ระบบแจ้งซ่อมห้องพัก{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+.profile-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.profile-image-container {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-image-container img {
+    border: 4px solid rgba(255,255,255,0.3);
+    transition: all 0.3s ease;
+}
+
+.profile-image-container:hover img {
+    border-color: rgba(255,255,255,0.8);
+    transform: scale(1.05);
+}
+
+.upload-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(255,255,255,0.9);
+    color: #667eea;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.upload-btn:hover {
+    background: white;
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+.stats-card {
+    background: white;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+
+.form-card {
+    background: white;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.history-card {
+    background: white;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+}
+
+.table th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    font-weight: 600;
+}
+
+.table td {
+    border-color: rgba(0,0,0,0.05);
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(102, 126, 234, 0.05);
+    transform: scale(1.01);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-user-edit me-2"></i>โปรไฟล์ช่างซ่อม
+    </h2>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('technician_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>กลับ
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <!-- Profile Card -->
+        <div class="card profile-card">
+            <div class="card-body text-center">
+                <div class="profile-image-container mb-3">
+                    {% if user.profile_image %}
+                        <img src="{{ url_for('static', filename='uploads/' + user.profile_image) }}" 
+                             class="rounded-circle" width="150" height="150" style="object-fit: cover;">
+                    {% else %}
+                        <div class="bg-white rounded-circle d-flex align-items-center justify-content-center mx-auto" 
+                             style="width: 150px; height: 150px; border: 4px solid rgba(255,255,255,0.3);">
+                            <i class="fas fa-wrench text-primary fa-4x"></i>
+                        </div>
+                    {% endif %}
+                    <button type="button" class="upload-btn" data-bs-toggle="modal" data-bs-target="#uploadImageModal" title="เปลี่ยนรูปโปรไฟล์">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                </div>
+                
+                <h4 class="card-title mb-2">{{ user.full_name }}</h4>
+                <p class="mb-2 opacity-75">
+                    <i class="fas fa-id-card me-1"></i>{{ technician.employee_id }}
+                </p>
+                
+                {% if technician.specialization %}
+                    <span class="badge bg-light text-primary mb-3 px-3 py-2" style="font-size: 0.9rem;">
+                        <i class="fas fa-tools me-1"></i>{{ technician.specialization }}
+                    </span>
+                {% endif %}
+                
+                <div class="mt-3">
+                    <small class="opacity-75">
+                        <i class="fas fa-calendar me-1"></i>
+                        <span id="current-date"></span>
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="card stats-card mt-3">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>สถิติการทำงาน
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="p-3">
+                            <h4 class="text-success mb-1">{{ technician.assigned_repairs|selectattr('status', 'equalto', 'completed')|list|length }}</h4>
+                            <small class="text-muted">
+                                <i class="fas fa-check-circle me-1"></i>งานเสร็จ
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3">
+                            <h4 class="text-warning mb-1">{{ technician.assigned_repairs|selectattr('status', 'in', ['assigned', 'in_progress'])|list|length }}</h4>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>งานค้าง
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <!-- Edit Profile Form -->
+        <div class="card form-card">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>แก้ไขข้อมูลส่วนตัว
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="full_name" class="form-label">
+                                <i class="fas fa-user me-1"></i>ชื่อ-นามสกุล *
+                            </label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" 
+                                   value="{{ user.full_name }}" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">
+                                <i class="fas fa-phone me-1"></i>เบอร์โทรศัพท์
+                            </label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   value="{{ user.phone or '' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="line_id" class="form-label">
+                                <i class="fab fa-line me-1"></i>ID ไลน์
+                            </label>
+                            <input type="text" class="form-control" id="line_id" name="line_id" 
+                                   value="{{ user.line_id or '' }}">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope me-1"></i>อีเมล
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ user.email }}" readonly>
+                            <small class="form-text text-muted">ไม่สามารถแก้ไขอีเมลได้</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="specialization" class="form-label">
+                            <i class="fas fa-tools me-1"></i>ความเชี่ยวชาญ
+                        </label>
+                        <select class="form-select" id="specialization" name="specialization">
+                            <option value="">เลือกความเชี่ยวชาญ</option>
+                            <option value="ระบบประปา" {% if technician.specialization == 'ระบบประปา' %}selected{% endif %}>ระบบประปา</option>
+                            <option value="ระบบไฟฟ้า" {% if technician.specialization == 'ระบบไฟฟ้า' %}selected{% endif %}>ระบบไฟฟ้า</option>
+                            <option value="เครื่องปรับอากาศ" {% if technician.specialization == 'เครื่องปรับอากาศ' %}selected{% endif %}>เครื่องปรับอากาศ</option>
+                            <option value="เฟอร์นิเจอร์" {% if technician.specialization == 'เฟอร์นิเจอร์' %}selected{% endif %}>เฟอร์นิเจอร์</option>
+                            <option value="ระบบอินเทอร์เน็ต" {% if technician.specialization == 'ระบบอินเทอร์เน็ต' %}selected{% endif %}>ระบบอินเทอร์เน็ต</option>
+                            <option value="ระบบประปาและไฟฟ้า" {% if technician.specialization == 'ระบบประปาและไฟฟ้า' %}selected{% endif %}>ระบบประปาและไฟฟ้า</option>
+                            <option value="เครื่องปรับอากาศและเฟอร์นิเจอร์" {% if technician.specialization == 'เครื่องปรับอากาศและเฟอร์นิเจอร์' %}selected{% endif %}>เครื่องปรับอากาศและเฟอร์นิเจอร์</option>
+                            <option value="ซ่อมทั่วไป" {% if technician.specialization == 'ซ่อมทั่วไป' %}selected{% endif %}>ซ่อมทั่วไป</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>บันทึกการแก้ไข
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Recent Work History -->
+        <div class="card history-card mt-3">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+                <h6 class="mb-0">
+                    <i class="fas fa-history me-2"></i>ประวัติการทำงานล่าสุด
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if technician.assigned_repairs %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>ห้อง</th>
+                                    <th>ประเภท</th>
+                                    <th>สถานะ</th>
+                                    <th>วันที่</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for repair in technician.assigned_repairs[:10] %}
+                                <tr>
+                                    <td>#{{ repair.id }}</td>
+                                    <td>{{ repair.room_number }}</td>
+                                    <td>
+                                        {% if repair.repair_type == 'plumbing' %}
+                                            <span class="badge bg-primary">ประปา</span>
+                                        {% elif repair.repair_type == 'electrical' %}
+                                            <span class="badge bg-warning">ไฟฟ้า</span>
+                                        {% elif repair.repair_type == 'furniture' %}
+                                            <span class="badge bg-success">เฟอร์นิเจอร์</span>
+                                        {% elif repair.repair_type == 'air_conditioning' %}
+                                            <span class="badge bg-info">เครื่องปรับอากาศ</span>
+                                        {% elif repair.repair_type == 'internet' %}
+                                            <span class="badge bg-secondary">อินเทอร์เน็ต</span>
+                                        {% else %}
+                                            <span class="badge bg-dark">อื่นๆ</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if repair.status == 'assigned' %}
+                                            <span class="badge bg-info">มอบหมายแล้ว</span>
+                                        {% elif repair.status == 'in_progress' %}
+                                            <span class="badge bg-primary">กำลังดำเนินการ</span>
+                                        {% elif repair.status == 'completed' %}
+                                            <span class="badge bg-success">เสร็จสิ้น</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ repair.created_at.strftime('%d/%m/%Y') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">ยังไม่มีประวัติการทำงาน</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Image Modal -->
+<div class="modal fade" id="uploadImageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border: none; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 20px 20px 0 0;">
+                <h5 class="modal-title">
+                    <i class="fas fa-camera me-2"></i>เปลี่ยนรูปโปรไฟล์
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" enctype="multipart/form-data">
+                <div class="modal-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="upload-area" style="border: 2px dashed #667eea; border-radius: 15px; padding: 40px; background: rgba(102, 126, 234, 0.05);">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                            <h6 class="text-primary">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</h6>
+                            <p class="text-muted small">รองรับไฟล์ JPG, PNG ขนาดไม่เกิน 5MB</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="profile_image" class="form-label">
+                            <i class="fas fa-image me-1"></i>เลือกรูปภาพ
+                        </label>
+                        <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*" required>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div id="imagePreview" class="mb-3" style="display: none;">
+                            <img id="previewImg" class="rounded shadow" style="max-width: 200px; max-height: 200px; object-fit: cover;">
+                            <p class="text-muted small mt-2">ตัวอย่างรูปภาพ</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border: none; padding: 20px 30px;">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>ยกเลิก
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-1"></i>อัปโหลด
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// แสดงวันที่ปัจจุบัน
+document.addEventListener('DOMContentLoaded', function() {
+    const now = new Date();
+    const options = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        weekday: 'long'
+    };
+    const thaiDate = now.toLocaleDateString('th-TH', options);
+    document.getElementById('current-date').textContent = thaiDate;
+});
+
+// Image preview and drag & drop
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('profile_image');
+    const uploadArea = document.querySelector('.upload-area');
+    const preview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    
+    // File input change
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            handleFile(file);
+        }
+    });
+    
+    // Drag and drop
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#667eea';
+        uploadArea.style.backgroundColor = 'rgba(102, 126, 234, 0.1)';
+    });
+    
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#667eea';
+        uploadArea.style.backgroundColor = 'rgba(102, 126, 234, 0.05)';
+    });
+    
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#667eea';
+        uploadArea.style.backgroundColor = 'rgba(102, 126, 234, 0.05)';
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFile(files[0]);
+        }
+    });
+    
+    // Click to select file
+    uploadArea.addEventListener('click', function() {
+        fileInput.click();
+    });
+    
+    function handleFile(file) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('กรุณาเลือกรูปภาพเท่านั้น');
+            return;
+        }
+        
+        // Validate file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('ขนาดไฟล์ต้องไม่เกิน 5MB');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+            
+            // Add animation
+            preview.style.opacity = '0';
+            preview.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                preview.style.transition = 'all 0.3s ease';
+                preview.style.opacity = '1';
+                preview.style.transform = 'scale(1)';
+            }, 100);
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const fullName = document.getElementById('full_name').value.trim();
+    if (!fullName) {
+        e.preventDefault();
+        alert('กรุณากรอกชื่อ-นามสกุล');
+        return false;
+    }
+});
+</script>
+{% endblock %}

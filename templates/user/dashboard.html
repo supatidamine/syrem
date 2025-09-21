@@ -1,0 +1,662 @@
+{% extends "base.html" %}
+
+{% block title %}แดชบอร์ดผู้ใช้ - ระบบแจ้งซ่อมห้องพัก{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+/* Action Buttons Styling */
+.btn-group .btn {
+    margin: 0 2px;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+}
+
+.btn-group .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-group .btn-outline-primary:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+}
+
+.btn-group .btn-outline-warning:hover {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+}
+
+.btn-group .btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+/* Delete Modal Styling */
+.modal-header.bg-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: 1px solid #ffeaa7;
+    color: #856404;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+/* Responsive Button Group */
+@media (max-width: 576px) {
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .btn-group .btn {
+        margin: 0;
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-home me-2"></i>แดชบอร์ดผู้ใช้
+    </h2>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('user_repair_request') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>แจ้งซ่อมใหม่
+        </a>
+        <a href="{{ url_for('user_profile') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-user-edit me-1"></i>โปรไฟล์
+        </a>
+    </div>
+</div>
+
+<!-- Welcome Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card welcome-card text-white dashboard-card fade-in-up">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-2 text-center">
+                        {% if user.profile_image %}
+                            <img src="{{ url_for('static', filename='uploads/' + user.profile_image) }}" 
+                                 alt="Profile" class="rounded-circle profile-img" width="100" height="100">
+                        {% else %}
+                            <div class="bg-white rounded-circle d-flex align-items-center justify-content-center profile-img" 
+                                 style="width: 100px; height: 100px;">
+                                <i class="fas fa-user text-primary" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-8">
+                        <h2 class="mb-2 dashboard-title">สวัสดี, {{ user.full_name }}! 👋</h2>
+                        <p class="mb-1 fs-5 dashboard-subtitle">
+                            {% if user.room_number %}
+                                🏠 ห้อง {{ user.room_number }} | 
+                            {% endif %}
+                            ยินดีต้อนรับสู่ระบบแจ้งซ่อมห้องพัก
+                        </p>
+                        <small class="opacity-75">
+                            <i class="fas fa-calendar me-1"></i>
+                            <span id="current-date"></span>
+                        </small>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <i class="fas fa-home fa-5x opacity-50 pulse-animation"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-gradient-warning text-white h-100 fade-in-up clickable-card" 
+             style="animation-delay: 0.1s;" 
+             onclick="filterRequests('pending')" 
+             data-status="pending">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1 fw-bold">{{ repair_requests|selectattr('status', 'equalto', 'pending')|list|length }}</h3>
+                        <p class="mb-0 fs-6">รอดำเนินการ</p>
+                        <small class="opacity-75">⏳ กำลังรอการตรวจสอบ</small>
+                    </div>
+                    <div class="text-end">
+                        <i class="fas fa-clock stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-gradient-info text-white h-100 fade-in-up clickable-card" 
+             style="animation-delay: 0.2s;" 
+             onclick="filterRequests('in_progress')" 
+             data-status="in_progress">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1 fw-bold">{{ repair_requests|selectattr('status', 'in', ['assigned', 'in_progress'])|list|length }}</h3>
+                        <p class="mb-0 fs-6">กำลังดำเนินการ</p>
+                        <small class="opacity-75">🔧 ช่างกำลังซ่อม</small>
+                    </div>
+                    <div class="text-end">
+                        <i class="fas fa-tools stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-gradient-success text-white h-100 fade-in-up clickable-card" 
+             style="animation-delay: 0.3s;" 
+             onclick="filterRequests('completed')" 
+             data-status="completed">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1 fw-bold">{{ repair_requests|selectattr('status', 'equalto', 'completed')|list|length }}</h3>
+                        <p class="mb-0 fs-6">เสร็จสิ้น</p>
+                        <small class="opacity-75">✅ ซ่อมเสร็จแล้ว</small>
+                    </div>
+                    <div class="text-end">
+                        <i class="fas fa-check-circle stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card bg-gradient-primary text-white h-100 fade-in-up clickable-card" 
+             style="animation-delay: 0.4s;" 
+             onclick="filterRequests('all')" 
+             data-status="all">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1 fw-bold">{{ repair_requests|length }}</h3>
+                        <p class="mb-0 fs-6">ทั้งหมด</p>
+                        <small class="opacity-75">📋 รายการทั้งหมด</small>
+                    </div>
+                    <div class="text-end">
+                        <i class="fas fa-list stat-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Repair Requests -->
+<div class="row">
+    <div class="col-12">
+        <div class="card dashboard-card fade-in-up" style="animation-delay: 0.5s;">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>รายการแจ้งซ่อมของฉัน
+                </h5>
+                <a href="{{ url_for('user_repair_request') }}" class="btn dashboard-btn btn-light">
+                    <i class="fas fa-plus me-1"></i>แจ้งซ่อมใหม่
+                </a>
+            </div>
+            <div class="card-body">
+                {% if repair_requests %}
+                    <div class="table-responsive">
+                        <table class="table dashboard-table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>ห้อง</th>
+                                    <th>ประเภท</th>
+                                    <th>ความสำคัญ</th>
+                                    <th>สถานะ</th>
+                                    <th>ช่างซ่อม</th>
+                                    <th>วันที่แจ้ง</th>
+                                    <th>การดำเนินการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in repair_requests %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">#{{ request.id }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ request.room_number }}</span>
+                                    </td>
+                                    <td>
+                                        {% if request.repair_type == 'plumbing' %}
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-tint me-1"></i>ประปา
+                                            </span>
+                                        {% elif request.repair_type == 'electrical' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-bolt me-1"></i>ไฟฟ้า
+                                            </span>
+                                        {% elif request.repair_type == 'furniture' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-couch me-1"></i>เฟอร์นิเจอร์
+                                            </span>
+                                        {% elif request.repair_type == 'air_conditioning' %}
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-snowflake me-1"></i>เครื่องปรับอากาศ
+                                            </span>
+                                        {% elif request.repair_type == 'internet' %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-wifi me-1"></i>อินเทอร์เน็ต
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-dark">
+                                                <i class="fas fa-tools me-1"></i>อื่นๆ
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if request.priority == 'urgent' %}
+                                            <span class="badge bg-danger">ด่วน</span>
+                                        {% elif request.priority == 'high' %}
+                                            <span class="badge bg-warning">สูง</span>
+                                        {% elif request.priority == 'medium' %}
+                                            <span class="badge bg-info">ปานกลาง</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">ต่ำ</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if request.status == 'pending' %}
+                                            <span class="status-badge status-pending">รอดำเนินการ</span>
+                                        {% elif request.status == 'assigned' %}
+                                            <span class="status-badge status-assigned">มอบหมายแล้ว</span>
+                                        {% elif request.status == 'in_progress' %}
+                                            <span class="status-badge status-in-progress">กำลังดำเนินการ</span>
+                                        {% elif request.status == 'completed' %}
+                                            <span class="status-badge status-completed">เสร็จสิ้น</span>
+                                        {% elif request.status == 'cancelled' %}
+                                            <span class="status-badge bg-danger text-white">ยกเลิก</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if request.assigned_technician %}
+                                            <div class="d-flex align-items-center">
+                                                {% if request.assigned_technician.user.profile_image %}
+                                                    <img src="{{ url_for('static', filename='uploads/' + request.assigned_technician.user.profile_image) }}" 
+                                                         class="rounded-circle me-2" width="25" height="25">
+                                                {% else %}
+                                                    <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                                                         style="width: 25px; height: 25px;">
+                                                        <i class="fas fa-wrench text-white" style="font-size: 10px;"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <div class="fw-bold">{{ request.assigned_technician.user.full_name }}</div>
+                                                    <small class="text-muted">{{ request.assigned_technician.employee_id }}</small>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">ยังไม่ได้มอบหมาย</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div>{{ request.created_at.strftime('%d/%m/%Y') }}</div>
+                                        <small class="text-muted">{{ request.created_at.strftime('%H:%M') }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                    data-bs-toggle="modal" data-bs-target="#viewModal{{ request.id }}"
+                                                    title="ดูรายละเอียด">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            {% if request.status == 'pending' %}
+                                                <a href="{{ url_for('user_edit_repair', repair_id=request.id) }}" 
+                                                   class="btn btn-sm btn-outline-warning" title="แก้ไข">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        data-bs-toggle="modal" data-bs-target="#deleteModal{{ request.id }}"
+                                                        title="ลบ">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">ยังไม่มีรายการแจ้งซ่อม</h5>
+                        <p class="text-muted">เริ่มต้นด้วยการแจ้งซ่อมครั้งแรกของคุณ</p>
+                        <a href="{{ url_for('user_repair_request') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>แจ้งซ่อม
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Modal for each request -->
+{% for request in repair_requests %}
+<div class="modal fade" id="viewModal{{ request.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">รายละเอียดการแจ้งซ่อม #{{ request.id }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>ข้อมูลการซ่อม</h6>
+                        <p><strong>ห้อง:</strong> {{ request.room_number }}</p>
+                        <p><strong>ประเภท:</strong> {{ request.repair_type }}</p>
+                        <p><strong>ความสำคัญ:</strong> {{ request.priority }}</p>
+                        <p><strong>สถานะ:</strong> 
+                            {% if request.status == 'pending' %}
+                                <span class="badge bg-warning">รอดำเนินการ</span>
+                            {% elif request.status == 'assigned' %}
+                                <span class="badge bg-info">มอบหมายแล้ว</span>
+                            {% elif request.status == 'in_progress' %}
+                                <span class="badge bg-primary">กำลังดำเนินการ</span>
+                            {% elif request.status == 'completed' %}
+                                <span class="badge bg-success">เสร็จสิ้น</span>
+                            {% elif request.status == 'cancelled' %}
+                                <span class="badge bg-danger">ยกเลิก</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>วันที่แจ้ง:</strong> {{ request.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        {% if request.assigned_technician %}
+                            <h6>ข้อมูลช่างซ่อม</h6>
+                            <div class="d-flex align-items-center mb-3">
+                                {% if request.assigned_technician.user.profile_image %}
+                                    <img src="{{ url_for('static', filename='uploads/' + request.assigned_technician.user.profile_image) }}" 
+                                         class="rounded-circle me-3" width="50" height="50">
+                                {% else %}
+                                    <div class="bg-secondary rounded-circle me-3 d-flex align-items-center justify-content-center" 
+                                         style="width: 50px; height: 50px;">
+                                        <i class="fas fa-wrench text-white"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-bold">{{ request.assigned_technician.user.full_name }}</div>
+                                    <small class="text-muted">{{ request.assigned_technician.employee_id }}</small>
+                                    {% if request.assigned_technician.specialization %}
+                                        <br><small class="text-muted">{{ request.assigned_technician.specialization }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if request.completed_at %}
+                            <h6>ข้อมูลการเสร็จสิ้น</h6>
+                            <p><strong>วันที่เสร็จ:</strong> {{ request.completed_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <hr>
+                <h6>รายละเอียดปัญหา</h6>
+                <p>{{ request.description }}</p>
+                
+                {% if request.image_path %}
+                    <h6>รูปภาพปัญหา</h6>
+                    <img src="{{ url_for('static', filename='uploads/' + request.image_path) }}" 
+                         class="img-fluid rounded" style="max-height: 300px;">
+                {% endif %}
+                
+                {% if request.completion_image %}
+                    <hr>
+                    <h6>รูปภาพหลังซ่อม</h6>
+                    <img src="{{ url_for('static', filename='uploads/' + request.completion_image) }}" 
+                         class="img-fluid rounded" style="max-height: 300px;">
+                {% endif %}
+                
+                {% if request.admin_notes %}
+                    <hr>
+                    <h6>หมายเหตุจากแอดมิน</h6>
+                    <p>{{ request.admin_notes }}</p>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Delete Confirmation Modals -->
+{% for request in repair_requests %}
+{% if request.status == 'pending' %}
+<div class="modal fade" id="deleteModal{{ request.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>ยืนยันการลบ
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-trash fa-3x text-danger mb-3"></i>
+                    <h5>คุณแน่ใจหรือไม่ที่จะลบการแจ้งซ่อมนี้?</h5>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <strong>รายละเอียดการแจ้งซ่อม:</strong><br>
+                    <strong>ID:</strong> #{{ request.id }}<br>
+                    <strong>ห้อง:</strong> {{ request.room_number }}<br>
+                    <strong>ประเภท:</strong> 
+                    {% if request.repair_type == 'plumbing' %}ประปา
+                    {% elif request.repair_type == 'electrical' %}ไฟฟ้า
+                    {% elif request.repair_type == 'furniture' %}เฟอร์นิเจอร์
+                    {% elif request.repair_type == 'air_conditioning' %}เครื่องปรับอากาศ
+                    {% elif request.repair_type == 'internet' %}อินเทอร์เน็ต
+                    {% else %}อื่นๆ
+                    {% endif %}<br>
+                    <strong>วันที่แจ้ง:</strong> {{ request.created_at.strftime('%d/%m/%Y %H:%M') }}
+                </div>
+                
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>คำเตือน:</strong> การดำเนินการนี้ไม่สามารถย้อนกลับได้ และรูปภาพที่เกี่ยวข้องจะถูกลบออกจากระบบด้วย
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>ยกเลิก
+                </button>
+                <form method="POST" action="{{ url_for('user_delete_repair', repair_id=request.id) }}" 
+                      style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>ลบการแจ้งซ่อม
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// แสดงวันที่ปัจจุบัน
+document.addEventListener('DOMContentLoaded', function() {
+    const now = new Date();
+    const options = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        weekday: 'long'
+    };
+    const thaiDate = now.toLocaleDateString('th-TH', options);
+    document.getElementById('current-date').textContent = thaiDate;
+});
+
+// ฟังก์ชันกรองข้อมูลตามสถานะ
+function filterRequests(status) {
+    // ลบ selected class จากทุกปุ่ม
+    document.querySelectorAll('.clickable-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // เพิ่ม selected class ให้ปุ่มที่คลิก
+    event.currentTarget.classList.add('selected');
+    
+    // กรองแถวในตาราง
+    const tableRows = document.querySelectorAll('.dashboard-table tbody tr');
+    let visibleCount = 0;
+    
+    tableRows.forEach(row => {
+        const statusCell = row.querySelector('td:nth-child(5)'); // คอลัมน์สถานะ
+        const statusText = statusCell.textContent.trim();
+        
+        let shouldShow = false;
+        
+        if (status === 'all') {
+            shouldShow = true;
+        } else if (status === 'pending') {
+            shouldShow = statusText.includes('รอดำเนินการ');
+        } else if (status === 'in_progress') {
+            shouldShow = statusText.includes('กำลังดำเนินการ') || statusText.includes('มอบหมายแล้ว');
+        } else if (status === 'completed') {
+            shouldShow = statusText.includes('เสร็จสิ้น');
+        }
+        
+        if (shouldShow) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // แสดงข้อความเมื่อไม่มีข้อมูล
+    const tableBody = document.querySelector('.dashboard-table tbody');
+    let noDataMessage = tableBody.querySelector('.no-data-message');
+    
+    if (visibleCount === 0) {
+        if (!noDataMessage) {
+            noDataMessage = document.createElement('tr');
+            noDataMessage.className = 'no-data-message';
+            noDataMessage.innerHTML = `
+                <td colspan="8" class="text-center py-4">
+                    <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                    <h6 class="text-muted">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</h6>
+                    <small class="text-muted">ลองเลือกสถานะอื่นหรือแจ้งซ่อมใหม่</small>
+                </td>
+            `;
+            tableBody.appendChild(noDataMessage);
+        }
+        noDataMessage.style.display = '';
+    } else {
+        if (noDataMessage) {
+            noDataMessage.style.display = 'none';
+        }
+    }
+    
+    // แสดงผลลัพธ์การกรอง
+    showFilterResult(status, visibleCount);
+}
+
+// แสดงผลลัพธ์การกรอง
+function showFilterResult(status, count) {
+    const statusNames = {
+        'all': 'ทั้งหมด',
+        'pending': 'รอดำเนินการ',
+        'in_progress': 'กำลังดำเนินการ',
+        'completed': 'เสร็จสิ้น'
+    };
+    
+    // สร้างหรืออัปเดตข้อความผลลัพธ์
+    let resultMessage = document.querySelector('.filter-result-message');
+    if (!resultMessage) {
+        resultMessage = document.createElement('div');
+        resultMessage.className = 'filter-result-message alert alert-info mb-3';
+        resultMessage.style.borderRadius = '10px';
+        resultMessage.style.border = 'none';
+        resultMessage.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        resultMessage.style.color = 'white';
+        
+        const tableContainer = document.querySelector('.table-responsive');
+        tableContainer.parentNode.insertBefore(resultMessage, tableContainer);
+    }
+    
+    resultMessage.innerHTML = `
+        <i class="fas fa-filter me-2"></i>
+        แสดงผล: <strong>${statusNames[status]}</strong> 
+        (${count} รายการ)
+        <button type="button" class="btn btn-sm btn-outline-light ms-2" onclick="clearFilter()">
+            <i class="fas fa-times me-1"></i>ล้างตัวกรอง
+        </button>
+    `;
+    
+    // แสดงข้อความด้วย animation
+    resultMessage.style.opacity = '0';
+    resultMessage.style.transform = 'translateY(-10px)';
+    setTimeout(() => {
+        resultMessage.style.transition = 'all 0.3s ease';
+        resultMessage.style.opacity = '1';
+        resultMessage.style.transform = 'translateY(0)';
+    }, 100);
+}
+
+// ล้างตัวกรอง
+function clearFilter() {
+    // ลบ selected class จากทุกปุ่ม
+    document.querySelectorAll('.clickable-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // แสดงแถวทั้งหมด
+    const tableRows = document.querySelectorAll('.dashboard-table tbody tr');
+    tableRows.forEach(row => {
+        row.style.display = '';
+    });
+    
+    // ซ่อนข้อความผลลัพธ์
+    const resultMessage = document.querySelector('.filter-result-message');
+    if (resultMessage) {
+        resultMessage.style.transition = 'all 0.3s ease';
+        resultMessage.style.opacity = '0';
+        resultMessage.style.transform = 'translateY(-10px)';
+        setTimeout(() => {
+            resultMessage.remove();
+        }, 300);
+    }
+    
+    // ซ่อนข้อความไม่มีข้อมูล
+    const noDataMessage = document.querySelector('.no-data-message');
+    if (noDataMessage) {
+        noDataMessage.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

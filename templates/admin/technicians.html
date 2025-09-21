@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %}จัดการช่างซ่อม - ระบบแจ้งซ่อมห้องพัก{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-users me-2"></i>จัดการช่างซ่อม
+    </h2>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('admin_add_technician') }}" class="btn btn-success">
+            <i class="fas fa-user-plus me-1"></i>เพิ่มช่างซ่อม
+        </a>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>กลับ
+        </a>
+    </div>
+</div>
+
+<!-- Technicians Table -->
+<div class="card">
+    <div class="card-body">
+        {% if technicians %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>รหัสพนักงาน</th>
+                            <th>ข้อมูลส่วนตัว</th>
+                            <th>ความเชี่ยวชาญ</th>
+                            <th>สถานะ</th>
+                            <th>งานที่ได้รับ</th>
+                            <th>วันที่เข้าร่วม</th>
+                            <th>การดำเนินการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for technician in technicians %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-primary">{{ technician.employee_id }}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if technician.user.profile_image %}
+                                        <img src="{{ url_for('static', filename='uploads/' + technician.user.profile_image) }}" 
+                                             class="rounded-circle me-3" width="50" height="50">
+                                    {% else %}
+                                        <div class="bg-secondary rounded-circle me-3 d-flex align-items-center justify-content-center" 
+                                             style="width: 50px; height: 50px;">
+                                            <i class="fas fa-wrench text-white"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-bold">{{ technician.user.full_name }}</div>
+                                        <small class="text-muted">{{ technician.user.email }}</small>
+                                        {% if technician.user.phone %}
+                                            <br><small class="text-muted">
+                                                <i class="fas fa-phone me-1"></i>{{ technician.user.phone }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if technician.specialization %}
+                                    <span class="badge bg-info">{{ technician.specialization }}</span>
+                                {% else %}
+                                    <span class="text-muted">ไม่ระบุ</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if technician.status == 'active' %}
+                                    <span class="badge bg-success">ใช้งาน</span>
+                                {% else %}
+                                    <span class="badge bg-danger">ไม่ใช้งาน</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    {% set assigned_count = technician.assigned_repairs|selectattr('status', 'in', ['assigned', 'in_progress'])|list|length %}
+                                    {% set completed_count = technician.assigned_repairs|selectattr('status', 'equalto', 'completed')|list|length %}
+                                    
+                                    <span class="badge bg-warning mb-1">กำลังทำ: {{ assigned_count }}</span>
+                                    <span class="badge bg-success">เสร็จแล้ว: {{ completed_count }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{ technician.created_at.strftime('%d/%m/%Y') }}</div>
+                                <small class="text-muted">{{ technician.created_at.strftime('%H:%M') }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            data-bs-toggle="modal" data-bs-target="#viewModal{{ technician.id }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-warning" 
+                                            data-bs-toggle="modal" data-bs-target="#editModal{{ technician.id }}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            data-bs-toggle="modal" data-bs-target="#deleteModal{{ technician.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">ยังไม่มีช่างซ่อม</h5>
+                <p class="text-muted">เริ่มต้นด้วยการเพิ่มช่างซ่อมคนแรก</p>
+                <a href="{{ url_for('admin_add_technician') }}" class="btn btn-primary">
+                    <i class="fas fa-user-plus me-1"></i>เพิ่มช่างซ่อม
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- View Modal for each technician -->
+{% for technician in technicians %}
+<div class="modal fade" id="viewModal{{ technician.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ข้อมูลช่างซ่อม: {{ technician.user.full_name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        {% if technician.user.profile_image %}
+                            <img src="{{ url_for('static', filename='uploads/' + technician.user.profile_image) }}" 
+                                 class="rounded-circle mb-3" width="120" height="120">
+                        {% else %}
+                            <div class="bg-secondary rounded-circle mb-3 d-flex align-items-center justify-content-center mx-auto" 
+                                 style="width: 120px; height: 120px;">
+                                <i class="fas fa-wrench text-white fa-3x"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-8">
+                        <h6>ข้อมูลส่วนตัว</h6>
+                        <p><strong>ชื่อ-นามสกุล:</strong> {{ technician.user.full_name }}</p>
+                        <p><strong>อีเมล:</strong> {{ technician.user.email }}</p>
+                        {% if technician.user.phone %}
+                            <p><strong>เบอร์โทรศัพท์:</strong> {{ technician.user.phone }}</p>
+                        {% endif %}
+                        {% if technician.user.line_id %}
+                            <p><strong>ไลน์ ID:</strong> {{ technician.user.line_id }}</p>
+                        {% endif %}
+                        
+                        <hr>
+                        
+                        <h6>ข้อมูลการทำงาน</h6>
+                        <p><strong>รหัสพนักงาน:</strong> {{ technician.employee_id }}</p>
+                        <p><strong>ความเชี่ยวชาญ:</strong> {{ technician.specialization or 'ไม่ระบุ' }}</p>
+                        <p><strong>สถานะ:</strong> 
+                            {% if technician.status == 'active' %}
+                                <span class="badge bg-success">ใช้งาน</span>
+                            {% else %}
+                                <span class="badge bg-danger">ไม่ใช้งาน</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>วันที่เข้าร่วม:</strong> {{ technician.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h6>ประวัติการทำงาน</h6>
+                {% if technician.assigned_repairs %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>ห้อง</th>
+                                    <th>ประเภท</th>
+                                    <th>สถานะ</th>
+                                    <th>วันที่</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for repair in technician.assigned_repairs[:10] %}
+                                <tr>
+                                    <td>#{{ repair.id }}</td>
+                                    <td>{{ repair.room_number }}</td>
+                                    <td>{{ repair.repair_type }}</td>
+                                    <td>
+                                        {% if repair.status == 'assigned' %}
+                                            <span class="badge bg-info">มอบหมายแล้ว</span>
+                                        {% elif repair.status == 'in_progress' %}
+                                            <span class="badge bg-primary">กำลังดำเนินการ</span>
+                                        {% elif repair.status == 'completed' %}
+                                            <span class="badge bg-success">เสร็จสิ้น</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ repair.created_at.strftime('%d/%m/%Y') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">ยังไม่มีประวัติการทำงาน</p>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal for each technician -->
+<div class="modal fade" id="editModal{{ technician.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">แก้ไขข้อมูลช่างซ่อม</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin_edit_technician', technician_id=technician.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">ชื่อ-นามสกุล</label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" 
+                               value="{{ technician.user.full_name }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">อีเมล</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="{{ technician.user.email }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">เบอร์โทรศัพท์</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" 
+                               value="{{ technician.user.phone or '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="line_id" class="form-label">ไลน์ ID</label>
+                        <input type="text" class="form-control" id="line_id" name="line_id" 
+                               value="{{ technician.user.line_id or '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="employee_id" class="form-label">รหัสพนักงาน</label>
+                        <input type="text" class="form-control" id="employee_id" name="employee_id" 
+                               value="{{ technician.employee_id }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="specialization" class="form-label">ความเชี่ยวชาญ</label>
+                        <input type="text" class="form-control" id="specialization" name="specialization" 
+                               value="{{ technician.specialization or '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">สถานะ</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="active" {% if technician.status == 'active' %}selected{% endif %}>ใช้งาน</option>
+                            <option value="inactive" {% if technician.status == 'inactive' %}selected{% endif %}>ไม่ใช้งาน</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn btn-warning">บันทึกการแก้ไข</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal for each technician -->
+<div class="modal fade" id="deleteModal{{ technician.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ยืนยันการลบ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>คุณแน่ใจหรือไม่ที่จะลบช่างซ่อม <strong>{{ technician.user.full_name }}</strong>?</p>
+                <p class="text-danger">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                <form method="POST" action="{{ url_for('admin_delete_technician', technician_id=technician.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger">ลบ</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

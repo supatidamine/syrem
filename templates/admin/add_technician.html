@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}เพิ่มช่างซ่อม - ระบบแจ้งซ่อมห้องพัก{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-user-plus me-2"></i>เพิ่มช่างซ่อม
+    </h2>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('admin_technicians') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>กลับ
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-plus me-2"></i>ข้อมูลช่างซ่อมใหม่
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="full_name" class="form-label">
+                                <i class="fas fa-user me-1"></i>ชื่อ-นามสกุล *
+                            </label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope me-1"></i>อีเมล *
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock me-1"></i>รหัสผ่าน *
+                            </label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">
+                                <i class="fas fa-phone me-1"></i>เบอร์โทรศัพท์
+                            </label>
+                            <input type="tel" class="form-control" id="phone" name="phone">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="line_id" class="form-label">
+                                <i class="fab fa-line me-1"></i>ID ไลน์
+                            </label>
+                            <input type="text" class="form-control" id="line_id" name="line_id">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="employee_id" class="form-label">
+                                <i class="fas fa-id-badge me-1"></i>รหัสพนักงาน *
+                            </label>
+                            <input type="text" class="form-control" id="employee_id" name="employee_id" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="specialization" class="form-label">
+                            <i class="fas fa-tools me-1"></i>ความเชี่ยวชาญ
+                        </label>
+                        <select class="form-select" id="specialization" name="specialization">
+                            <option value="">เลือกความเชี่ยวชาญ</option>
+                            <option value="ระบบประปา">ระบบประปา</option>
+                            <option value="ระบบไฟฟ้า">ระบบไฟฟ้า</option>
+                            <option value="เครื่องปรับอากาศ">เครื่องปรับอากาศ</option>
+                            <option value="เฟอร์นิเจอร์">เฟอร์นิเจอร์</option>
+                            <option value="ระบบอินเทอร์เน็ต">ระบบอินเทอร์เน็ต</option>
+                            <option value="ระบบประปาและไฟฟ้า">ระบบประปาและไฟฟ้า</option>
+                            <option value="เครื่องปรับอากาศและเฟอร์นิเจอร์">เครื่องปรับอากาศและเฟอร์นิเจอร์</option>
+                            <option value="ซ่อมทั่วไป">ซ่อมทั่วไป</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-user-plus me-2"></i>เพิ่มช่างซ่อม
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Information Card -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>ข้อมูลสำคัญ
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li><i class="fas fa-check text-success me-2"></i>รหัสพนักงานต้องไม่ซ้ำกับที่มีอยู่</li>
+                    <li><i class="fas fa-check text-success me-2"></i>อีเมลจะใช้สำหรับเข้าสู่ระบบ</li>
+                    <li><i class="fas fa-check text-success me-2"></i>ช่างซ่อมจะได้รับสิทธิ์เข้าถึงระบบทันที</li>
+                    <li><i class="fas fa-check text-success me-2"></i>สามารถแก้ไขข้อมูลได้ภายหลัง</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}โปรไฟล์แอดมิน - ระบบแจ้งซ่อมห้องพัก{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-user-shield me-2"></i>โปรไฟล์แอดมิน
+    </h2>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>กลับ
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <!-- Profile Card -->
+        <div class="card dashboard-card fade-in-up">
+            <div class="card-header" style="background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%); color: white;">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-shield me-2"></i>ข้อมูลส่วนตัว
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="row">
+                        <!-- Profile Image Section -->
+                        <div class="col-12 text-center mb-4">
+                            <div class="position-relative d-inline-block">
+                                {% if user.profile_image %}
+                                    <img src="{{ url_for('static', filename='uploads/' + user.profile_image) }}" 
+                                         alt="Profile" class="rounded-circle profile-img" width="150" height="150">
+                                {% else %}
+                                    <div class="bg-gradient-danger rounded-circle d-flex align-items-center justify-content-center profile-img" 
+                                         style="width: 150px; height: 150px;">
+                                        <i class="fas fa-user-shield text-white" style="font-size: 4rem;"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="position-absolute bottom-0 end-0">
+                                    <label for="profile_image" class="btn btn-primary btn-sm rounded-circle" 
+                                           style="width: 40px; height: 40px; padding: 0;">
+                                        <i class="fas fa-camera"></i>
+                                    </label>
+                                    <input type="file" class="d-none" id="profile_image" name="profile_image" accept="image/*">
+                                </div>
+                            </div>
+                            <p class="text-muted mt-2">คลิกที่ไอคอนกล้องเพื่อเปลี่ยนรูปโปรไฟล์</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="full_name" class="form-label">
+                                <i class="fas fa-user me-1"></i>ชื่อ-นามสกุล *
+                            </label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" 
+                                   value="{{ user.full_name or '' }}" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope me-1"></i>อีเมล *
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ user.email or '' }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">
+                                <i class="fas fa-phone me-1"></i>เบอร์โทรศัพท์
+                            </label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   value="{{ user.phone or '' }}" placeholder="เช่น 081-234-5678">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="user_type" class="form-label">
+                                <i class="fas fa-shield-alt me-1"></i>ประเภทผู้ใช้
+                            </label>
+                            <input type="text" class="form-control" value="ผู้ดูแลระบบ" readonly 
+                                   style="background-color: #f8f9fa;">
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn dashboard-btn btn-primary">
+                            <i class="fas fa-save me-2"></i>บันทึกการเปลี่ยนแปลง
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Account Information Card -->
+        <div class="card dashboard-card mt-3 fade-in-up" style="animation-delay: 0.2s;">
+            <div class="card-header" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>ข้อมูลบัญชี
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-2">
+                            <strong><i class="fas fa-calendar-plus me-2"></i>วันที่สร้างบัญชี:</strong><br>
+                            <span class="text-muted">{{ user.created_at.strftime('%d/%m/%Y %H:%M') if user.created_at else 'ไม่ระบุ' }}</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2">
+                            <strong><i class="fas fa-key me-2"></i>รหัสผ่าน:</strong><br>
+                            <span class="text-muted">••••••••</span>
+                            <small class="text-muted d-block">ติดต่อผู้ดูแลระบบเพื่อเปลี่ยนรหัสผ่าน</small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Information Card -->
+        <div class="card dashboard-card mt-3 fade-in-up" style="animation-delay: 0.3s;">
+            <div class="card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-cogs me-2"></i>สิทธิ์การเข้าถึงระบบ
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        <strong>จัดการระบบ:</strong> ดูสถิติและรายงานทั้งหมด
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        <strong>จัดการช่างซ่อม:</strong> เพิ่ม/แก้ไข/ลบข้อมูลช่างซ่อม
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        <strong>มอบหมายงาน:</strong> มอบหมายงานซ่อมให้ช่างซ่อม
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        <strong>จัดการผู้ใช้:</strong> ดูและจัดการข้อมูลผู้ใช้ทั้งหมด
+                    </li>
+                    <li class="mb-0">
+                        <i class="fas fa-check text-success me-2"></i>
+                        <strong>รายงาน:</strong> สร้างและดูรายงานต่างๆ
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Image preview
+document.getElementById('profile_image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.querySelector('.profile-img');
+            if (img.tagName === 'IMG') {
+                img.src = e.target.result;
+            } else {
+                // Replace div with img
+                const newImg = document.createElement('img');
+                newImg.src = e.target.result;
+                newImg.className = 'rounded-circle profile-img';
+                newImg.style.width = '150px';
+                newImg.style.height = '150px';
+                newImg.alt = 'Profile';
+                img.parentNode.replaceChild(newImg, img);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const fullName = document.getElementById('full_name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    
+    if (!fullName || !email) {
+        e.preventDefault();
+        alert('กรุณากรอกชื่อ-นามสกุลและอีเมลให้ครบถ้วน');
+        return false;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        e.preventDefault();
+        alert('กรุณากรอกอีเมลให้ถูกต้อง');
+        return false;
+    }
+});
+</script>
+{% endblock %}

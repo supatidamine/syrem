@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}โปรไฟล์ผู้ใช้ - ระบบแจ้งซ่อมห้องพัก{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-user-edit me-2"></i>โปรไฟล์ผู้ใช้
+    </h2>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('user_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>กลับ
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <!-- Profile Card -->
+        <div class="card">
+            <div class="card-body text-center">
+                {% if user.profile_image %}
+                    <img src="{{ url_for('static', filename='uploads/' + user.profile_image) }}" 
+                         class="rounded-circle mb-3" width="150" height="150">
+                {% else %}
+                    <div class="bg-secondary rounded-circle mb-3 d-flex align-items-center justify-content-center mx-auto" 
+                         style="width: 150px; height: 150px;">
+                        <i class="fas fa-user text-white fa-4x"></i>
+                    </div>
+                {% endif %}
+                
+                <h5 class="card-title">{{ user.full_name }}</h5>
+                <p class="text-muted">{{ user.email }}</p>
+                
+                {% if user.room_number %}
+                    <span class="badge bg-info mb-3">ห้อง {{ user.room_number }}</span>
+                {% endif %}
+                
+                <div class="d-grid">
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#uploadImageModal">
+                        <i class="fas fa-camera me-1"></i>เปลี่ยนรูปโปรไฟล์
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>สถิติการแจ้งซ่อม
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h5 class="text-primary">{{ user.repair_requests|selectattr('status', 'equalto', 'completed')|list|length }}</h5>
+                        <small class="text-muted">ซ่อมเสร็จ</small>
+                    </div>
+                    <div class="col-6">
+                        <h5 class="text-warning">{{ user.repair_requests|selectattr('status', 'in', ['pending', 'assigned', 'in_progress'])|list|length }}</h5>
+                        <small class="text-muted">กำลังดำเนินการ</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <!-- Edit Profile Form -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>แก้ไขข้อมูลส่วนตัว
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="full_name" class="form-label">
+                                <i class="fas fa-user me-1"></i>ชื่อ-นามสกุล *
+                            </label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" 
+                                   value="{{ user.full_name }}" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">
+                                <i class="fas fa-phone me-1"></i>เบอร์โทรศัพท์
+                            </label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   value="{{ user.phone or '' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="line_id" class="form-label">
+                                <i class="fab fa-line me-1"></i>ID ไลน์
+                            </label>
+                            <input type="text" class="form-control" id="line_id" name="line_id" 
+                                   value="{{ user.line_id or '' }}">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="room_number" class="form-label">
+                                <i class="fas fa-door-open me-1"></i>หมายเลขห้อง
+                            </label>
+                            <input type="text" class="form-control" id="room_number" name="room_number" 
+                                   value="{{ user.room_number or '' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope me-1"></i>อีเมล
+                        </label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="{{ user.email }}" readonly>
+                        <small class="form-text text-muted">ไม่สามารถแก้ไขอีเมลได้</small>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>บันทึกการแก้ไข
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Recent Repair History -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-history me-2"></i>ประวัติการแจ้งซ่อมล่าสุด
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if user.repair_requests %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>ห้อง</th>
+                                    <th>ประเภท</th>
+                                    <th>สถานะ</th>
+                                    <th>วันที่</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in user.repair_requests[:10] %}
+                                <tr>
+                                    <td>#{{ request.id }}</td>
+                                    <td>{{ request.room_number }}</td>
+                                    <td>
+                                        {% if request.repair_type == 'plumbing' %}
+                                            <span class="badge bg-primary">ประปา</span>
+                                        {% elif request.repair_type == 'electrical' %}
+                                            <span class="badge bg-warning">ไฟฟ้า</span>
+                                        {% elif request.repair_type == 'furniture' %}
+                                            <span class="badge bg-success">เฟอร์นิเจอร์</span>
+                                        {% elif request.repair_type == 'air_conditioning' %}
+                                            <span class="badge bg-info">เครื่องปรับอากาศ</span>
+                                        {% elif request.repair_type == 'internet' %}
+                                            <span class="badge bg-secondary">อินเทอร์เน็ต</span>
+                                        {% else %}
+                                            <span class="badge bg-dark">อื่นๆ</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if request.status == 'pending' %}
+                                            <span class="badge bg-warning">รอดำเนินการ</span>
+                                        {% elif request.status == 'assigned' %}
+                                            <span class="badge bg-info">มอบหมายแล้ว</span>
+                                        {% elif request.status == 'in_progress' %}
+                                            <span class="badge bg-primary">กำลังดำเนินการ</span>
+                                        {% elif request.status == 'completed' %}
+                                            <span class="badge bg-success">เสร็จสิ้น</span>
+                                        {% elif request.status == 'cancelled' %}
+                                            <span class="badge bg-danger">ยกเลิก</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ request.created_at.strftime('%d/%m/%Y') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">ยังไม่มีประวัติการแจ้งซ่อม</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Image Modal -->
+<div class="modal fade" id="uploadImageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">เปลี่ยนรูปโปรไฟล์</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="profile_image" class="form-label">เลือกรูปภาพ</label>
+                        <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*" required>
+                        <small class="form-text text-muted">รองรับไฟล์ JPG, PNG ขนาดไม่เกิน 5MB</small>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div id="imagePreview" class="mb-3" style="display: none;">
+                            <img id="previewImg" class="rounded" style="max-width: 200px; max-height: 200px;">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn btn-primary">อัปโหลด</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Image preview
+document.getElementById('profile_image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+{% endblock %}
