@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}เข้าสู่ระบบ - ระบบแจ้งซ่อมห้องพัก{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login-redesign.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h2>
+                <i class="fas fa-sign-in-alt me-2"></i>เข้าสู่ระบบ
+            </h2>
+            <p class="subtitle">ยินดีต้อนรับสู่ระบบแจ้งซ่อมห้องพัก</p>
+        </div>
+        
+        <div class="login-body">
+            <form method="POST">
+                <div class="form-group">
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope me-1"></i>อีเมล
+                    </label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           placeholder="กรุณากรอกอีเมลของคุณ" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock me-1"></i>รหัสผ่าน
+                    </label>
+                    <div class="password-input-container">
+                        <input type="password" class="form-control password-input" id="password" name="password" 
+                               placeholder="กรุณากรอกรหัสผ่าน" required>
+                        <button type="button" class="password-toggle-btn" onclick="togglePassword()">
+                            <i class="fas fa-eye" id="password-toggle-icon"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-sign-in-alt me-2"></i>เข้าสู่ระบบ
+                </button>
+            </form>
+            
+            <div class="divider">
+                <span>หรือ</span>
+            </div>
+            
+            <div class="register-link">
+                <p>ยังไม่มีบัญชี?</p>
+                <a href="{{ url_for('register') }}" class="register-btn">
+                    <i class="fas fa-user-plus me-2"></i>สมัครสมาชิก
+                </a>
+            </div>
+            
+            <!-- Demo Accounts Section -->
+            <div class="demo-section">
+                <div class="demo-header">
+                    <h6>
+                        <i class="fas fa-info-circle me-2"></i>บัญชีทดสอบ
+                    </h6>
+                </div>
+                <div class="demo-accounts">
+                    <div class="demo-account admin" onclick="autoLogin('admin@example.com', 'admin123')">
+                        <div class="demo-role">
+                            <i class="fas fa-user-shield"></i>แอดมิน
+                        </div>
+                        <div class="demo-credentials">admin@example.com / admin123</div>
+                        <div class="demo-action">
+                            <i class="fas fa-sign-in-alt me-1"></i>กดเพื่อเข้าสู่ระบบ
+                        </div>
+                    </div>
+                    <div class="demo-account technician" onclick="autoLogin('tech@example.com', 'tech123')">
+                        <div class="demo-role">
+                            <i class="fas fa-wrench"></i>ช่างซ่อม
+                        </div>
+                        <div class="demo-credentials">tech@example.com / tech123</div>
+                        <div class="demo-action">
+                            <i class="fas fa-sign-in-alt me-1"></i>กดเพื่อเข้าสู่ระบบ
+                        </div>
+                    </div>
+                    <div class="demo-account user" onclick="autoLogin('user@example.com', 'user123')">
+                        <div class="demo-role">
+                            <i class="fas fa-user"></i>ผู้ใช้
+                        </div>
+                        <div class="demo-credentials">user@example.com / user123</div>
+                        <div class="demo-action">
+                            <i class="fas fa-sign-in-alt me-1"></i>กดเพื่อเข้าสู่ระบบ
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const toggleIcon = document.getElementById('password-toggle-icon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.className = 'fas fa-eye-slash';
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.className = 'fas fa-eye';
+    }
+}
+
+function autoLogin(email, password) {
+    // Fill credentials
+    document.getElementById('email').value = email;
+    document.getElementById('password').value = password;
+    
+    // Add visual feedback
+    const emailField = document.getElementById('email');
+    const passwordField = document.getElementById('password');
+    
+    emailField.style.borderColor = '#28a745';
+    passwordField.style.borderColor = '#28a745';
+    
+    // Show loading state
+    const submitBtn = document.querySelector('.submit-btn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>กำลังเข้าสู่ระบบ...';
+    submitBtn.disabled = true;
+    
+    // Submit form after short delay
+    setTimeout(() => {
+        document.querySelector('form').submit();
+    }, 1000);
+}
+
+function fillCredentials(email, password) {
+    document.getElementById('email').value = email;
+    document.getElementById('password').value = password;
+    
+    // Add visual feedback
+    const emailField = document.getElementById('email');
+    const passwordField = document.getElementById('password');
+    
+    emailField.style.borderColor = '#28a745';
+    passwordField.style.borderColor = '#28a745';
+    
+    setTimeout(() => {
+        emailField.style.borderColor = '';
+        passwordField.style.borderColor = '';
+    }, 2000);
+}
+</script>
+{% endblock %}

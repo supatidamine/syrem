@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}หน้าแรก - ระบบแจ้งซ่อมห้องพัก{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+<style>
+/* Responsive usage instructions */
+@media (max-width: 768px) {
+    .col-md-4 {
+        margin-bottom: 2rem;
+    }
+    
+    .col-md-4:last-child {
+        margin-bottom: 0;
+    }
+}
+
+/* Admin section styling */
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.fa-user-shield {
+    color: #dc3545 !important;
+}
+
+/* Ensure equal height columns */
+.col-md-4 {
+    display: flex;
+    flex-direction: column;
+}
+
+.col-md-4 h6 {
+    flex-shrink: 0;
+}
+
+.col-md-4 ol {
+    flex-grow: 1;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section - Clean & Bright -->
+<div class="hero-section text-center py-5 mb-5">
+    <div class="container">
+        <div class="hero-content">
+            <div class="hero-icon mb-4">
+                <i class="fas fa-tools"></i>
+            </div>
+            <h1 class="hero-title mb-4">
+                ระบบแจ้งซ่อมห้องพัก
+            </h1>
+            <p class="hero-subtitle mb-5">
+                บริการแจ้งซ่อมที่รวดเร็ว ง่าย และสะดวก<br>
+                พร้อมระบบติดตามแบบเรียลไทม์
+            </p>
+            {% if not session.user_id %}
+                <div class="hero-buttons">
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>สมัครสมาชิก
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>เข้าสู่ระบบ
+                    </a>
+                </div>
+            {% else %}
+                <div class="hero-buttons">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-tachometer-alt me-2"></i>ไปยังแดชบอร์ด
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card feature-card user-card h-100 text-center">
+            <div class="card-body">
+                <i class="fas fa-user feature-icon"></i>
+                <h5 class="card-title fw-bold">ผู้ใช้งานทั่วไป</h5>
+                <p class="card-text text-muted">แจ้งซ่อม ดูสถานะการซ่อม และจัดการโปรไฟล์ส่วนตัว</p>
+                <ul class="list-unstyled text-start">
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>แจ้งซ่อมออนไลน์</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>ติดตามสถานะ</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>อัปโหลดรูปภาพ</li>
+                    <li class="mb-0"><i class="fas fa-check text-success me-2"></i>ประวัติการแจ้งซ่อม</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card feature-card technician-card h-100 text-center">
+            <div class="card-body">
+                <i class="fas fa-wrench feature-icon"></i>
+                <h5 class="card-title fw-bold">ช่างซ่อม</h5>
+                <p class="card-text text-muted">รับงานซ่อม อัปเดตสถานะ และจัดการโปรไฟล์</p>
+                <ul class="list-unstyled text-start">
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>ดูงานที่ได้รับมอบหมาย</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>อัปเดตสถานะงาน</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>อัปโหลดรูปหลังซ่อม</li>
+                    <li class="mb-0"><i class="fas fa-check text-success me-2"></i>จัดการโปรไฟล์</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card feature-card admin-card h-100 text-center">
+            <div class="card-body">
+                <i class="fas fa-user-shield feature-icon"></i>
+                <h5 class="card-title fw-bold">แอดมิน</h5>
+                <p class="card-text text-muted">จัดการระบบ มอบหมายงาน และดูรายงาน</p>
+                <ul class="list-unstyled text-start">
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>แดชบอร์ดและรายงาน</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>มอบหมายงานให้ช่าง</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>จัดการช่างซ่อม</li>
+                    <li class="mb-0"><i class="fas fa-check text-success me-2"></i>แผนภูมิสถิติ</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card info-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>วิธีการใช้งาน
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-user me-2 text-primary"></i>สำหรับผู้ใช้งานทั่วไป
+                        </h6>
+                        <ol class="list-group list-group-numbered">
+                            <li class="list-group-item border-0 px-0">สมัครสมาชิกด้วยอีเมลและข้อมูลส่วนตัว</li>
+                            <li class="list-group-item border-0 px-0">เข้าสู่ระบบและไปที่หน้า "แจ้งซ่อม"</li>
+                            <li class="list-group-item border-0 px-0">กรอกข้อมูลการซ่อม อัปโหลดรูปภาพ</li>
+                            <li class="list-group-item border-0 px-0">ติดตามสถานะการซ่อมในแดชบอร์ด</li>
+                        </ol>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-wrench me-2 text-warning"></i>สำหรับช่างซ่อม
+                        </h6>
+                        <ol class="list-group list-group-numbered">
+                            <li class="list-group-item border-0 px-0">เข้าสู่ระบบด้วยรหัสที่ได้รับจากแอดมิน</li>
+                            <li class="list-group-item border-0 px-0">ดูรายการงานที่ได้รับมอบหมาย</li>
+                            <li class="list-group-item border-0 px-0">อัปเดตสถานะงานตามความคืบหน้า</li>
+                            <li class="list-group-item border-0 px-0">อัปโหลดรูปภาพหลังซ่อมเสร็จ</li>
+                        </ol>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-user-shield me-2 text-danger"></i>สำหรับแอดมิน
+                        </h6>
+                        <ol class="list-group list-group-numbered">
+                            <li class="list-group-item border-0 px-0">เข้าสู่ระบบด้วยบัญชีแอดมิน</li>
+                            <li class="list-group-item border-0 px-0">ดูแดชบอร์ดภาพรวมและสถิติระบบ</li>
+                            <li class="list-group-item border-0 px-0">จัดการรายการแจ้งซ่อมและมอบหมายงาน</li>
+                            <li class="list-group-item border-0 px-0">เพิ่ม/แก้ไข/ลบข้อมูลช่างซ่อม</li>
+                            <li class="list-group-item border-0 px-0">ติดตามและอัปเดตสถานะการซ่อม</li>
+                            <li class="list-group-item border-0 px-0">ดูรายงานและสถิติการใช้งาน</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

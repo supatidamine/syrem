@@ -1,0 +1,444 @@
+/* Modern Login Page Redesign */
+
+/* Main Container */
+.login-container {
+    min-height: 100vh;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Login Card */
+.login-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    position: relative;
+    animation: slideInUp 0.8s ease-out;
+    max-width: 450px;
+    width: 100%;
+    margin: 20px;
+}
+
+.login-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Card Header */
+.login-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    position: relative;
+}
+
+.login-header h2 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 2rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.login-header .subtitle {
+    margin-top: 0.5rem;
+    opacity: 0.9;
+    font-weight: 300;
+}
+
+/* Card Body */
+.login-body {
+    padding: 2.5rem 2rem;
+}
+
+/* Form Groups */
+.form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 15px 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 15px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+    position: relative;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+}
+
+.form-control::placeholder {
+    color: #adb5bd;
+    font-style: italic;
+}
+
+/* Input Icons */
+.input-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #adb5bd;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.form-control:focus + .input-icon {
+    color: #667eea;
+    transform: translateY(-50%) scale(1.1);
+}
+
+/* Password Input Container */
+.password-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input {
+    padding-right: 50px; /* Make space for toggle button */
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #adb5bd;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.password-toggle-btn:hover {
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.password-toggle-btn:focus {
+    outline: none;
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.password-input:focus + .password-toggle-btn {
+    color: #667eea;
+}
+
+/* Submit Button */
+.submit-btn {
+    width: 100%;
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.submit-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.submit-btn:hover::before {
+    left: 100%;
+}
+
+.submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+}
+
+.submit-btn:active {
+    transform: translateY(-1px);
+}
+
+/* Divider */
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 2rem 0;
+    color: #adb5bd;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+}
+
+.divider span {
+    padding: 0 1rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Register Link */
+.register-link {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.register-link p {
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.register-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 25px;
+    background: transparent;
+    border: 2px solid #667eea;
+    color: #667eea;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+}
+
+.register-btn:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    text-decoration: none;
+}
+
+/* Demo Accounts */
+.demo-section {
+    margin-top: 2rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 20px;
+    padding: 1.5rem;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.demo-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.demo-header h6 {
+    color: #495057;
+    font-weight: 600;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.demo-accounts {
+    display: grid;
+    gap: 1rem;
+}
+
+.demo-account {
+    background: white;
+    border-radius: 15px;
+    padding: 1rem;
+    border-left: 4px solid;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.demo-account::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.05), transparent);
+    transition: left 0.5s;
+}
+
+.demo-account:hover::before {
+    left: 100%;
+}
+
+.demo-account:hover {
+    transform: translateX(5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.demo-account.admin {
+    border-left-color: #dc3545;
+}
+
+.demo-account.technician {
+    border-left-color: #ffc107;
+}
+
+.demo-account.user {
+    border-left-color: #28a745;
+}
+
+.demo-role {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+}
+
+.demo-role i {
+    margin-right: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.demo-credentials {
+    font-family: 'Courier New', monospace;
+    color: #6c757d;
+    font-size: 0.85rem;
+    background: #f8f9fa;
+    padding: 0.5rem;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    margin-bottom: 0.5rem;
+}
+
+.demo-action {
+    color: #667eea;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 0.25rem 0.5rem;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    transition: all 0.3s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .login-card {
+        margin: 10px;
+        border-radius: 25px;
+    }
+    
+    .login-header {
+        padding: 2rem 1.5rem;
+    }
+    
+    .login-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .login-body {
+        padding: 2rem 1.5rem;
+    }
+    
+    .form-control {
+        padding: 12px 15px;
+    }
+    
+    .submit-btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .login-card {
+        background: rgba(45, 55, 72, 0.95);
+        color: white;
+    }
+    
+    .form-control {
+        background: #4a5568;
+        border-color: #4a5568;
+        color: white;
+    }
+    
+    .form-control:focus {
+        background: #4a5568;
+        border-color: #667eea;
+    }
+    
+    .form-label {
+        color: #e2e8f0;
+    }
+    
+    .demo-section {
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    }
+    
+    .demo-account {
+        background: #2d3748;
+        color: white;
+    }
+    
+    .demo-credentials {
+        background: #4a5568;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+}
+
